@@ -1,12 +1,11 @@
-# 2.6.3 General Multivariate normal case, covariance matrices are different for each category
 import numpy as np
 import numpy.linalg as la
 from sympy.solvers import solve
 from sympy.matrices import Matrix
 from sympy import symbols
+import sympy
 import matplotlib.pyplot as pyplot
 import matplotlib as mpl
-
 mpl.style.use('seaborn')
 
 
@@ -63,6 +62,24 @@ def calc_decision_boundary(disc_func1, disc_func2, variable):
     return solve(disc_func1 - disc_func2, variable)
 
 
+def calc_chern_bound(mean_vec1, mean_vec2, cov_mat1, cov_mat2, b=0.5):
+    """
+    Chernoff Bound (pg 46) Eq - 75
+    :param mean_vec1, mean_vec2: numpy.array - mean vector
+    :param cov_mat1, cov_mat1: numpy.array - covariance matrices
+    :param b: Parameter - for bound. when b = 0.5 it is Bhattacharyya bound
+    :return: Constant value for k
+    """
+    weighted_matrix = b*cov_mat1 + (1-b)*cov_mat2
+    mean_diff = mean_vec2 - mean_vec1
+    weighted_mean_diff = ((b*(1-b))/2)*mean_diff
+    temp = np.dot(weighted_mean_diff, la.inv(weighted_matrix))
+    first_term = np.dot(temp, mean_diff)
+
+    second_term = 0.5 * np.log(la.det(weighted_matrix) / ((la.det(cov_mat1))**b * (la.det(cov_mat2))**(1-b)))
+    return first_term + second_term
+
+
 def calc_bhatt_bound(mean_vec1, mean_vec2, cov_mat1, cov_mat2):
     """
     Bhattacharyya Bound (pg 47) Eq - 77
@@ -85,8 +102,10 @@ def generate_2d_plot(result, variable, data1=None, data2=None, xst=-4, xls=12):
     x_vals = []
     y_vals = []
     for i in range(xst, xls):
-        x_vals.append(i)
-        y_vals.append(result.subs(variable, i))
+        y_val = result.subs(variable, i)
+        if isinstance(y_val, sympy.numbers.Float):  # Checks for Imaginary Numbers, cannot plot with them using pyplot
+            x_vals.append(i)
+            y_vals.append(y_val)
 
     pyplot.plot(x_vals, y_vals)
     if data1 is not None and data2 is not None:
@@ -103,6 +122,7 @@ def main(x, u1, cov1, u2, cov2, p1, p2, solve_for='x2'):
 
 
 def run_example():
+    # 2.6.3 General Multivariate normal case, covariance matrices are different for each category
     x1, x2 = symbols('x1 x2')
     x = Matrix([x1, x2])
 
@@ -138,5 +158,11 @@ def run_hw():
     cov2 = np.matrix([[1, 1], [1, 2]])
     p1 = 0.25
     p2 = 0.75
-    result = main(x, u1, cov1, u2, cov2, p1, p2, 'x2')
-    generate_2d_plot(result[0][x2], x1, xst=-9, xls=9)
+    #result = main(x, u1, cov1, u2, cov2, p1, p2, 'x2')
+    #generate_2d_plot(result[0][x2], x1, xst=-9, xls=9)
+    #  https://www.wolframalpha.com/input/?i=-(1%2F2)*x%5E2+-+(1%2F4)*y%5E2+-+1.73286795139986+%2B+x%5E2+-+(1%2F2)*x*y+-+(1%2F2)*x*y+%2B+(1%2F2)*y%5E2+-+2*x+%2B+2.28+%3D+0
+    # Wolfram gets hyperbola
+
+    print(calc_bhatt_bound(u1, u2, cov1, cov2))
+
+run_hw()
