@@ -68,12 +68,14 @@ def pca(training_data):
 
     eigenvalues, eigenvectors = perform_eigen_decomposition(s)
     index_of_max = np.argmax(eigenvalues)
-    e = eigenvectors[index_of_max]
+    e = eigenvectors[:, index_of_max]
 
     # Feature dimension
-    d = len(training_data[0])
+    d = len(training_data)
+    centered_data = training_data - m
 
     #  Formula: a_k = e^(t) * (x - m)
+
     a = {k: np.dot(e.transpose(), (training_data - m)[k]) for k in range(0, d)}
 
     x = {k: m + a[k]*e for k in range(0, d)}

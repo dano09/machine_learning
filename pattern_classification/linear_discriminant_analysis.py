@@ -48,13 +48,13 @@ def lda(d1, d2):
     u2 = calc_mean_vector(d2)
 
     s1 = calc_scatter_matrix(d1, u1)
-    c1 = calc_covariance_matrix(s1, len(d1), bias=False)
+    #c1 = calc_covariance_matrix(s1, len(d1), bias=False)
 
     s2 = calc_scatter_matrix(d2, u2)
-    c2 = calc_covariance_matrix(s2, len(d2), bias=False)
+    #c2 = calc_covariance_matrix(s2, len(d2), bias=False)
 
     # Within-class scatter matrix
-    sw = c1 + c2
+    sw = s1 + s2
 
     # Between-class scatter matrix
     sb = np.outer(u1 - u2, u1 - u2)
@@ -65,11 +65,18 @@ def lda(d1, d2):
     # Want max eigenvalue and corresponding projection
     index_of_max = np.argmax(eigenvalues)
     max_eigenvalue = eigenvalues[index_of_max]
-    lda_projection = eigenvectors[:, index_of_max]
-    print(max_eigenvalue)
-    print(lda_projection)
 
+    # LDA Projection
+    w = eigenvectors[:, index_of_max]
 
+    yk = [np.dot(w.transpose(), d_k) for d_k in d1 + d2]
+    print(yk)
+    # now done with formula
+    # w = S_w^-1 (m1 -m2)
+    #s_inv = la.inv(sw)
+    #mean_dif = u1 - u2
+    #w = np.dot(s_inv, mean_dif)
+    #print(w)
 
 def example():
     # http://www.sci.utah.edu/~shireen/pdfs/tutorials/Elhabian_LDA09.pdf
@@ -79,7 +86,7 @@ def example():
 
 def hw2():
     d1 = [np.array([1, 2]), np.array([-3, -1]), np.array([4, 5]), np.array([-1, 1])]
-    d2 = [np.array([0, -2]), np.array([3, 2]), np.array([-1, -4]), np.array([3, 1])]
+    d2 = [np.array([0, -2]), np.array([5, 2]), np.array([-1, -4]), np.array([3, 1])]
+    lda(d1, d2)
 
-
-example()
+hw2()
