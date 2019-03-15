@@ -95,7 +95,7 @@ def calc_bhatt_bound(mean_vec1, mean_vec2, cov_mat1, cov_mat2):
     first_term = np.dot(np.dot(0.125*mean_diff, la.inv(avg_cov_matrix)), mean_diff)
     second_term = 0.5 * np.log(la.det(avg_cov_matrix) / np.sqrt(la.det(cov_mat1)*la.det(cov_mat2)))
 
-    return first_term, second_term
+    return first_term + second_term
 
 
 def generate_2d_plot(result, variable, data1=None, data2=None, xst=-4, xls=12):
@@ -162,7 +162,13 @@ def run_hw():
     #generate_2d_plot(result[0][x2], x1, xst=-9, xls=9)
     #  https://www.wolframalpha.com/input/?i=-(1%2F2)*x%5E2+-+(1%2F4)*y%5E2+-+1.73286795139986+%2B+x%5E2+-+(1%2F2)*x*y+-+(1%2F2)*x*y+%2B+(1%2F2)*y%5E2+-+2*x+%2B+2.28+%3D+0
     # Wolfram gets hyperbola
+    kb = calc_bhatt_bound(u1, u2, cov1, cov2)
+    kb2 = calc_chern_bound(u1, u2, cov1, cov2, b=0.5)
+    # Error bound
+    bhatt_error_bound = np.sqrt(p1*p2)*np.exp(-kb)
+    chernoff_error_bound = np.sqrt(p1 * p2) * np.exp(-kb2)
+    print(bhatt_error_bound)
+    print(chernoff_error_bound)
 
-    print(calc_bhatt_bound(u1, u2, cov1, cov2))
 
 run_hw()
