@@ -1,0 +1,18 @@
+Latex Formulas
+
+Expectation:
+r_{ik} = \frac{\rho _{k} \times\Pr \left ( x _{i} | \mu _{k}, \Sigma _{k} \right )}{\sum_{j=1}^{K}(\rho _{j}\times\Pr\left ( x _{i}|\mu _{j}, \Sigma _{j} \right ))}
+
+Maximization:
+
+Rho:
+\rho _{k} = \frac{1}{N}\sum_{i=1}^{N}r_{ik}
+
+Mean:
+\mu_{k} = \frac{\sum_{i=1}^{N}r_{ik} \times x_{i}}{\sum_{i=1}^{N}r_{ik}}
+
+Covariance:
+\Sigma _{k} = \frac{\sum_{i=1}^{N}r_{ik}\times (x_{i} - \mu _{k})(x_{i} - \mu _{k})^{T}}{\sum_{i=1}^{N}r_{ik}}
+
+Log Likelihood:
+\ln \Pr(X | \mu, \Sigma, \rho) = \sum_{i=1}^{N}\ln\left ( \sum_{k=1}^{K}\rho_{k} \times \Pr\left ( x_{i} | \mu_{k}, \Sigma_{k} \right ) \right ) 
