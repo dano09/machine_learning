@@ -1,11 +1,13 @@
 import pandas as pd
-from scipy.stats import norm, multivariate_normal
+from scipy.stats import multivariate_normal
 import numpy as np
 from functools import reduce
 import matplotlib as mpl
 import matplotlib.pyplot as pyplot
+
 mpl.style.use('seaborn')
 np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
+
 
 def get_data():
     # data = pd.read_csv('C:\\Users\\Justin\\PycharmProjects\\machine_learning\\pattern_classification\\hw3_1.csv', header=None).transpose()
@@ -50,7 +52,7 @@ def get_base_distributions(data):
 
 
 def calc_expectation(data, gauss1, gauss2, pi):
-    # E Stepb
+    # E Step
     r = np.zeros((len(data), 2))
     for c, g, p in zip(range(2), [gauss1, gauss2], pi):
         r[:, c] = p * g.pdf(data)
@@ -72,7 +74,17 @@ def calc_mixture(total_weight):
 
 
 def calc_updated_mean(data, r, total_weight):
-    # Parameter 2 (mean)
+    """
+    Calculate the updated mean
+
+    Since our training sample has two features, we need to perform broadcast multiplication which
+    will loop through each cluster vector in r and apply scalar multiplication to all samples for
+    both features.
+    :param data:     pd.DataFrame (n * 2) - training samples
+    :param r:            np.array (n * 2) - our responsibility for each sample
+    :param total_weight: np.array (1 * 2) - accumulation of responsibility for each cluster
+    :return:     list of np.array (1 * 2) - mean vectors for each Gaussian
+    """
     mu_c = []
     for cluster, rho in zip(r.T, total_weight):
         mu_c.append((np.sum(data.multiply(cluster, axis=0)) / rho).values)
@@ -80,7 +92,17 @@ def calc_updated_mean(data, r, total_weight):
 
 
 def calc_updated_cov(data, r, mu_u, total_weight):
-    # Parameter 3 (covariance)
+    """
+    Calculate the updated covariance
+
+    For each cluster, we calculate the covariance matrix while also multiplying by each samples responsibility
+
+    :param data:     pd.DataFrame (n * 2) - training samples
+    :param r:            np.array (n * 2) - our responsibility for each sample
+    :param mu_u: list of np.array (1 * 2) - mean vectors for each Gaussian
+    :param total_weight: np.array (1 * 2) - accumulation of responsibility for each cluster
+    :return:     list of np.array (2 * 2) - covariance matrix for each Gaussian
+    """
     d = data.values
     cov_c = []
     for cluster, u, w in zip(r.T, mu_u, total_weight):
@@ -92,8 +114,12 @@ def calc_updated_cov(data, r, mu_u, total_weight):
 
 
 def calc_maximization(data, r):
-    # M Step
-    # Calculate total weight, then update parameters
+    """
+    Calculates the updated parameters based on our responsibility matrix
+    :param data: pd.DataFrame (n * 2) - training samples
+    :param r:        np.array (n * 2) - our responsibility for each sample
+    :return: list of numpy.arrays
+    """
     total_weight = calc_total_weight(r)
     rho_u = calc_mixture(total_weight)
     mu_u = calc_updated_mean(data, r, total_weight)
@@ -102,6 +128,14 @@ def calc_maximization(data, r):
 
 
 def evaluate_log_likelihood(data, gauss1, gauss2, rho_u):
+    """
+    Computes the log-likelihood
+    :param data: pd.DataFrame (n * 2) - training samples
+    :param gauss1: scipy.stats._multivariate_normal
+    :param gauss2: scipy.stats._multivariate_normal
+    :param rho_u: list [float, float] - Gaussian Weights
+    :return: float
+    """
     r_new = np.zeros((len(data), 3))
     for c, g, p in zip(range(2), [gauss1, gauss2], rho_u):
         r_new[:, c] = p * g.pdf(data)
@@ -125,6 +159,8 @@ def plot_gmm(data, XY, gauss1, gauss2, title):
     ax0 = fig.add_subplot(111)
     ax0.scatter(d[:, 0], d[:, 1])
     ax0.set_title(title)
+    ax0.set_xlabel('Feature 1')
+    ax0.set_ylabel('Feature 2')
     ax0.contour(np.sort(d[:, 0]),
                 np.sort(d[:, 1]),
                 gauss1.pdf(XY).reshape(len(d), len(d)),
@@ -139,7 +175,13 @@ def plot_gmm(data, XY, gauss1, gauss2, title):
 
 
 def em_for_mixed_gaussian(data, rho, epis, gmm_plot_data):
-
+    """
+    Compute paramters of GMM using the EM algorithm with log likelihood stopping criteria
+    :param data: pd.DataFrame (n * 2)         - training samples
+    :param rho: list [float, float]           - Gaussian Weights
+    :param epis: float                        - threshold for stopping criteria
+    :param gmm_plot_data: np.array ( n*n, 2 ) - for plotting the GMM
+    """
     # Step 1, calculate initial parameters using subset of data
     gauss1, gauss2 = get_base_distributions(data)
 
